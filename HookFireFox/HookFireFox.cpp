@@ -26,6 +26,7 @@ int HookedPR_Write(void* fd, char* buf, int amount)
         goto ret;
     }
 
+    // log HTTP 的封包內容
     if (StrContain(data, "HTTP"))
     {
         Log("http.txt", "---\n");
@@ -34,6 +35,7 @@ int HookedPR_Write(void* fd, char* buf, int amount)
     }
 
 ret:
+    // 記錄原始資料
     Log("raw.txt", "---\n");
     Log("raw.txt", buf);
     Log("raw.txt", "\n---\n");

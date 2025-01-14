@@ -133,6 +133,7 @@ DWORD_PTR GetModuleBaseAddress(const char* moduleName)
     return (DWORD_PTR)hModule;
 }
 
+// 新增內文到檔案中
 BOOL Log(const std::string& filename, const std::string& content)
 {
     std::ofstream file;
@@ -148,6 +149,7 @@ BOOL Log(const std::string& filename, const std::string& content)
     return TRUE;
 }
 
+// 清除檔案內容
 bool ClearFile(const std::string& filename)
 {
     std::ofstream file;

