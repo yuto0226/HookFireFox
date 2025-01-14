@@ -29,7 +29,7 @@ int HookedPR_Write(void* fd, char* buf, int amount)
     }
 
     // log HTTP 的封包內容
-    if (StrContain(data, "HTTP"))
+    if (data.rfind("{") != std::string::npos && StrContain(data, "HTTP"))
     {
         Log("http.txt", "--- Write ---\n");
         Log("http.txt", buf);
@@ -52,7 +52,7 @@ int HookedPR_Read(void* fd, void* buf, int amount)
     // log HTTP 的封包內容
     if (StrContain(data, "HTTP"))
     {
-        Log("http.txt", "--- Write ---\n");
+        Log("http.txt", "--- Read ---\n");
         Log("http.txt", data);
         Log("http.txt", "\n---\n");
     }
