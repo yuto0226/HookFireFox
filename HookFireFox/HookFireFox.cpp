@@ -8,6 +8,8 @@
 
 typedef int (*PR_Write_t)(void* fd, char* buf, int amount);
 PR_Write_t fpPR_Write = nullptr;
+typedef int (*PR_Read_t)(void* fd, void* buf, int amount);
+PR_Read_t fpPR_Read = nullptr;
 
 int HookedPR_Write(void* fd, char* buf, int amount)
 {   
@@ -29,18 +31,39 @@ int HookedPR_Write(void* fd, char* buf, int amount)
     // log HTTP 的封包內容
     if (StrContain(data, "HTTP"))
     {
-        Log("http.txt", "---\n");
+        Log("http.txt", "--- Write ---\n");
         Log("http.txt", buf);
         Log("http.txt", "\n---\n");
     }
 
 ret:
     // 記錄原始資料
-    Log("raw.txt", "---\n");
+    Log("raw.txt", "--- Write ---\n");
     Log("raw.txt", buf);
     Log("raw.txt", "\n---\n");
     return fpPR_Write(fd, buf, amount);
 }
+
+int HookedPR_Read(void* fd, void* buf, int amount)
+{
+    int val = fpPR_Read(fd, buf, amount);
+    std::string data = reinterpret_cast<const char*>(buf);
+
+    // log HTTP 的封包內容
+    if (StrContain(data, "HTTP"))
+    {
+        Log("http.txt", "--- Write ---\n");
+        Log("http.txt", data);
+        Log("http.txt", "\n---\n");
+    }
+
+ret:
+    Log("raw.txt", "--- Read ---\n");
+    Log("raw.txt", data);
+    Log("raw.txt", "\n---\n");
+    return val;
+}
+
 
 BOOL InstallHooks()
 {
@@ -56,6 +79,7 @@ BOOL InstallHooks()
         return FALSE;
     }
 
+    // setting PR_Write
     PR_Write_t PR_Write = (PR_Write_t)GetProcAddress(nss3dLL, "PR_Write");
     if (PR_Write == NULL) {
         Log("log.txt", "[-] Get PR_Write from nss3.dll failed.\n");
@@ -68,6 +92,23 @@ BOOL InstallHooks()
     }
 
     if (MH_EnableHook(PR_Write) != MH_OK)
+    {
+        return FALSE;
+    }
+
+    // Setting PR_Read
+    PR_Write_t PR_Read = (PR_Write_t)GetProcAddress(nss3dLL, "PR_Read");
+    if (PR_Write == NULL) {
+        Log("log.txt", "[-] Get PR_Read from nss3.dll failed.\n");
+        return FALSE;
+    }
+
+    if (MH_CreateHook(PR_Read, &HookedPR_Read, reinterpret_cast<LPVOID*>(&fpPR_Read)) != MH_OK)
+    {
+        return FALSE;
+    }
+
+    if (MH_EnableHook(PR_Read) != MH_OK)
     {
         return FALSE;
     }
