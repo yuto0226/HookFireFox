@@ -148,6 +148,22 @@ BOOL Log(const std::string& filename, const std::string& content)
     return TRUE;
 }
 
+bool ClearFile(const std::string& filename)
+{
+    std::ofstream file;
+    std::string fullPath = GetDirectoryFromPath(GetCurrentDllPath()) + "\\" + filename;
+    file.open(fullPath, std::ios::out);  // 使用 std::ios::out，不使用 std::ios::app 和 std::ios::binary
+    if (!file.is_open())
+    {
+        return false;
+    }
+
+    // 不需要寫入任何內容，檔案會被截斷
+    file.close();
+
+    return true;
+}
+
 bool CaseInsensitiveCompare(char a, char b)
 {
     return std::tolower(a) == std::tolower(b);

