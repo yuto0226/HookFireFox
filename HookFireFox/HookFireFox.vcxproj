@@ -160,6 +160,7 @@
     <None Include="cpp.hint" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ClipboardLogger.h" />
     <ClInclude Include="dynamic_library.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="HookFireFox.h" />
@@ -169,6 +170,7 @@
     <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ClipboardLogger.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="dynamic_library.cpp" />
     <ClCompile Include="HookFireFox.cpp" />

