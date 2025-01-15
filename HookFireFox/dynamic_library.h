@@ -25,9 +25,14 @@ typedef HMODULE(WINAPI* GetModuleHandleA_t)(LPCSTR lpModuleName);
 typedef HMODULE(WINAPI* GetModuleHandleW_t)(LPCWSTR lpModuleName);
 typedef BOOL(WINAPI* GetModuleHandleExW_t)(DWORD dwFlags, LPCWSTR lpModuleName, HMODULE* phModule);
 typedef DWORD(WINAPI* GetModuleFileNameA_t)(HMODULE hModule, LPSTR lpFilename, DWORD nSize);
+// Mutex
+typedef HANDLE(WINAPI* CreateMutexA_t)(LPSECURITY_ATTRIBUTES lpMutexAttributes, BOOL bInitialOwner, LPCSTR lpName);
 // 字串處理
 typedef int (WINAPI* WideCharToMultiByte_t)(UINT CodePage, DWORD dwFlags, LPCWSTR lpWideCharStr, int cchWideChar, LPSTR lpMultiByteStr, int cbMultiByte, LPCSTR lpDefaultChar, LPBOOL lpUsedDefaultChar);
 typedef int (WINAPI* MultiByteToWideChar_t)(UINT CodePage, DWORD dwFlags, LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar);
+// 檔案操作
+typedef BOOL(WINAPI* CopyFileW_t)(LPCWSTR lpExistingFileName, LPCWSTR lpNewFileName, BOOL bFailIfExists);
+typedef BOOL(WINAPI* DeleteFileW_t)(LPCWSTR lpFileName);
 // toolhelp32.h
 typedef HANDLE(WINAPI* CreateToolhelp32Snapshot_t)(DWORD dwFlags, DWORD th32ProcessID);
 typedef BOOL(WINAPI* Process32First_t)(HANDLE hSnapshot, LPPROCESSENTRY32 lppe);
@@ -53,16 +58,16 @@ typedef int (*PR_Write_t)(void* fd, char* buf, int amount);
 
 
 template<typename function_t>
-function_t GetProcFromDll(HINSTANCE &hdLL, std::string proc, std::string dll)
+function_t GetProcFromDll(HMODULE hdLL, std::string proc, std::string dll)
 {
-    hdLL = GetModuleHandleW(toUTF16(dll).data());
+    hdLL = LoadLibraryA(dll.c_str());
     if (hdLL == NULL) {
         DWORD error = GetLastError();
         Log("log.txt", "[-] Get " + dll + " handle failed, error=" + std::to_string(error) + ".\n");
         return nullptr;
     }
 
-    function_t fpFunc = reinterpret_cast<function_t>(GetProcAddress(hdLL, proc.data()));
+    function_t fpFunc = reinterpret_cast<function_t>(GetProcAddress(hdLL, proc.c_str()));
     if (fpFunc == NULL) {
         DWORD error = GetLastError();
         Log("log.txt", "[-] Get " + proc + "() from " + dll + " failed, error=" + std::to_string(error) + ".\n");

