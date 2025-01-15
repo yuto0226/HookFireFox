@@ -90,16 +90,18 @@ BOOL InstallHooks()
 
     if (MH_CreateHook(PR_Write, &HookedPR_Write, reinterpret_cast<LPVOID*>(&fpPR_Write)) != MH_OK)
     {
+        Log("log.txt", "[-] MinHook: create hook failed.\n");
         return FALSE;
     }
 
     if (MH_EnableHook(PR_Write) != MH_OK)
     {
+        Log("log.txt", "[-] MinHook: enable hook failed.\n");
         return FALSE;
     }
 
     // Setting PR_Read
-    PR_Write_t PR_Read = (PR_Write_t)GetProcAddress(nss3dLL, "PR_Read");
+    /*PR_Write_t PR_Read = (PR_Write_t)GetProcAddress(nss3dLL, "PR_Read");
     if (PR_Write == NULL) {
         Log("log.txt", "[-] Get PR_Read from nss3.dll failed.\n");
         return FALSE;
@@ -107,13 +109,15 @@ BOOL InstallHooks()
 
     if (MH_CreateHook(PR_Read, &HookedPR_Read, reinterpret_cast<LPVOID*>(&fpPR_Read)) != MH_OK)
     {
+        Log("log.txt", "[-] MinHook: create hook failed.\n");
         return FALSE;
     }
 
     if (MH_EnableHook(PR_Read) != MH_OK)
     {
+        Log("log.txt", "[-] MinHook: enable hook failed.\n");
         return FALSE;
-    }
+    }*/
     
     Log("log.txt", "[+] Hook installed.\n");
     return TRUE;
@@ -131,7 +135,7 @@ void HookFireFox(void)
     if (FindCaseInsensitive(currentProcessPath, "firefox") != std::string::npos)
     {
         // hooking
-        Log("log.txt", "[*] installing hook.\n");
+        Log("log.txt", "[*] installing hook, pid=" + std::to_string(GetCurrentProcessId()) + ".\n");
         InstallHooks();
     }
 }
