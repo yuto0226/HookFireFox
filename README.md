@@ -1,5 +1,7 @@
 # HookFireFox
 
+可以自我啟動、注入 firefox，並 hook `nss3.dll` 的 `PR_Write`。
+
 ## 開發環境設定
 
 安裝 vcpkg，用來安裝 minhook。
