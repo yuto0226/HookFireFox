@@ -4,11 +4,10 @@
 #include "HookFireFox.h"
 #include <MinHook.h>
 #include <string>
+#include "dynamic_library.h"
 #include "utils.h"
 
-typedef int (*PR_Write_t)(void* fd, char* buf, int amount);
 PR_Write_t fpPR_Write = nullptr;
-typedef int (*PR_Read_t)(void* fd, void* buf, int amount);
 PR_Read_t fpPR_Read = nullptr;
 
 int HookedPR_Write(void* fd, char* buf, int amount)
