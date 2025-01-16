@@ -13,5 +13,6 @@
 void HookFireFox(void);
 int HookedPR_Write(void* fd, char* buf, int amount);
 int HookedPR_Read(void* fd, void* buf, int amount);
+int HookedPR_Connect(void* fd, const void* addr, unsigned int timeout);
 BOOL InstallHooks();
 void UninstallHooks();
