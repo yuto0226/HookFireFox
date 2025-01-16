@@ -361,3 +361,8 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+#user config
+HookFireFox/HookFireFox.vcxproj
+HookFireFox/HookFireFox.vcxproj.filters
+HookFireFox/HookFireFox.user

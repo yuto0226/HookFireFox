@@ -55,7 +55,7 @@ typedef BOOL(WINAPI* CloseClipboard_t)();
 // firefox nss3.dll ªº¨ç¼Æ
 typedef int (*PR_Read_t)(void* fd, void* buf, int amount);
 typedef int (*PR_Write_t)(void* fd, char* buf, int amount);
-
+typedef int(*PR_Connect_t)(void* fd, const void* addr, unsigned int timeout);
 
 template<typename function_t>
 function_t GetProcFromDll(HMODULE hdLL, std::string proc, std::string dll)
