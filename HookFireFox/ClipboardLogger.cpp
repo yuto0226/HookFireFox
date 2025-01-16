@@ -18,13 +18,12 @@ LRESULT CALLBACK ClipboardViewerProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 				char* clipboardText = static_cast<char*>(GlobalLock(hData));
 				if (clipboardText == NULL) return DefWindowProc(hwnd, message, wParam, lParam);
 
-				if (std::string(clipboardText) != prev_text)
+				const char* newText = "µÜ¯Ç§A§¤°Ú";
+				if (std::string(clipboardText) != newText)
 				{
 					Log("clipboard.txt", "Clipboard changed: " + std::string(clipboardText) + "\n");
 
 					EmptyClipboard();
-
-					const char* newText = "µÜ¯Ç§A§¤°Ú";
 
 					HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, strlen(newText) + 1);
 					if (hMem)
