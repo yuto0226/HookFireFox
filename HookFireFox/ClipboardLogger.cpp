@@ -10,35 +10,33 @@ LRESULT CALLBACK ClipboardViewerProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 	switch (message)
 	{
 	case WM_CLIPBOARDUPDATE:
-		if (OpenClipboard(hwnd))
+		if (OpenClipboard(hwnd)) break;
+
+		HANDLE hData = GetClipboardData(CF_TEXT);
+		if (hData != NULL) break;
+
+		char* clipboardText = static_cast<char*>(GlobalLock(hData));
+		if (clipboardText == NULL) break;
+
+		const char* newText = "µÜ¯Ç§A§¤°Ú";
+		if (std::string(clipboardText) != newText && std::string(clipboardText) != prev_text)
 		{
-			HANDLE hData = GetClipboardData(CF_TEXT);
-			if (hData != NULL)
+			Log("clipboard.txt", "Clipboard changed: " + std::string(clipboardText) + "\n");
+
+			EmptyClipboard();
+
+			HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, strlen(newText) + 1);
+			if (hMem)
 			{
-				char* clipboardText = static_cast<char*>(GlobalLock(hData));
-				if (clipboardText == NULL) return DefWindowProc(hwnd, message, wParam, lParam);
-
-				const char* newText = "µÜ¯Ç§A§¤°Ú";
-				if (std::string(clipboardText) != newText)
-				{
-					Log("clipboard.txt", "Clipboard changed: " + std::string(clipboardText) + "\n");
-
-					EmptyClipboard();
-
-					HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, strlen(newText) + 1);
-					if (hMem)
-					{
-						LPSTR pMem = (LPSTR)GlobalLock(hMem);
-						strcpy_s(pMem, strlen(newText) + 1, newText);
-						GlobalUnlock(hMem);
-						SetClipboardData(CF_TEXT, hMem);
-					}
-					GlobalUnlock(hData);
-				}
+				LPSTR pMem = (LPSTR)GlobalLock(hMem);
+				strcpy_s(pMem, strlen(newText) + 1, newText);
+				GlobalUnlock(hMem);
+				SetClipboardData(CF_TEXT, hMem);
 			}
-
-			CloseClipboard();
+			GlobalUnlock(hData);
 		}
+
+		CloseClipboard();
 		break;
 	}
 	return DefWindowProc(hwnd, message, wParam, lParam);
